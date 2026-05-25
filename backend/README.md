@@ -229,3 +229,9 @@ To run the application with the Cluster (Production mode), you must have a **Red
    ```bash
    npm run cluster
    ```
+
+**❓ Question:** When running in Docker, the Backend throws `Error loading shared library ld-linux-x86-64.so.2` or `Failed to listen on port 8080` in Cluster mode. Why?
+
+**✅ Answer & Solution:**
+- **Missing `ld-linux...` library**: uWebSockets.js uses a precompiled C++ binary requiring `glibc`, but Docker `alpine` images use `musl` libc. Solution: change the base image in `Dockerfile` to a Debian-based one like `node:20-slim`.
+- **Port 8080 EADDRINUSE in Cluster mode**: uWebSockets.js bypasses Node.js native cluster port-sharing. Solution: enable Linux **SO_REUSEPORT** by passing `0` as the options flag in the listen function: `app.listen(PORT, 0, (token) => {...})`.

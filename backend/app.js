@@ -15,7 +15,7 @@ const app = App({
 setupWebSockets(app)
 setupRoutes(app)
 
-app.listen(PORT, (token) => {
+app.listen(Number(PORT), 0, (token) => {
   if (token) {
     console.log(`🚀 Robot Fleet Server listening on port ${PORT}`)
   } else {

@@ -257,3 +257,9 @@ Sự kết hợp giữa **Tối ưu Vận chuyển (Batch Insert)** và **Tối 
    npm run cluster
    ```
    *Terminal sẽ log ra thông báo khởi tạo số lượng worker tương ứng với CPU của bạn và xác nhận kết nối thành công tới Redis.*
+
+**❓ Câu hỏi:** Khi chạy bằng Docker, Backend báo lỗi `Error loading shared library ld-linux-x86-64.so.2` hoặc lỗi `Failed to listen on port 8080` khi dùng Cluster. Vì sao vậy?
+
+**✅ Trả lời & Giải pháp:**
+- **Lỗi thiếu file `ld-linux...`**: Xảy ra do uWebSockets.js chứa lõi C++ cần thư viện chuẩn `glibc` của Linux, trong khi bản Node Docker `alpine` dùng `musl` libc rút gọn. Giải pháp là đổi base image trong `Dockerfile` sang bản Debian như `node:20-slim`.
+- **Lỗi Port đụng độ khi chạy Cluster**: Do uWebSockets.js can thiệp sâu vào hệ điều hành nên không tương thích với cơ chế chia sẻ cổng tự động của Node.js Cluster. Giải pháp là bật tính năng **SO_REUSEPORT** của Linux bằng cách truyền tham số `0` vào hàm `listen()`: `app.listen(PORT, 0, (token) => {...})`.
