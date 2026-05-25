@@ -1,47 +1,48 @@
 # 🤖 Robot Fleet Dashboard
 
-Hệ thống quản lý thời gian thực dành cho hạm đội Robot. Dự án này bao gồm Frontend (Next.js), Backend (Node.js/uWebSockets), Robot Simulator, cơ sở dữ liệu MongoDB và Redis Pub/Sub. Toàn bộ hệ thống đã được đóng gói bằng Docker.
+A real-time management system for a Robot Fleet. This project includes a Frontend (Next.js), Backend (Node.js/uWebSockets), Robot Simulator, MongoDB database, and Redis Pub/Sub. The entire system is packaged with Docker.
 
-## 🚀 Khởi chạy Nhanh bằng Docker Compose (Demo Mode)
+## 🚀 Quick Start with Docker Compose (Demo Mode)
 
-Để khởi chạy toàn bộ hệ thống (bao gồm cả trình giả lập Robot tự động bắn dữ liệu), bạn chỉ cần cài đặt Docker Desktop và làm theo 2 bước đơn giản sau:
+To start the entire system (including the Robot Simulator that auto-emits data), simply install Docker Desktop and follow these 2 easy steps:
 
-### Bước 1: Dừng các tiến trình cũ (nếu có)
+### Step 1: Stop old processes (if any)
+If you are running the app manually (e.g. `npm run dev` or `npm run cluster`) in your terminals, **make sure to press `Ctrl + C` to stop them all** to free up the network ports (port 8080 and 3000) and avoid conflicts.
 
-### Bước 2: Chạy Docker Compose
-Mở terminal tại thư mục gốc của dự án này và gõ lệnh sau:
+### Step 2: Run Docker Compose
+Open a terminal in the root directory of this project and run the following command:
 
 ```bash
 docker compose up --build -d
 ```
 
-Lệnh này sẽ tự động:
-1. Tải và cấu hình **MongoDB** & **Redis**.
-2. Xây dựng (build) image cho **Backend** và khởi chạy ở chế độ Đa luồng (Cluster).
-3. Xây dựng image tĩnh cho **Frontend (Next.js)**.
-4. Bật **Robot Simulator** để mô phỏng 5 con robot hoạt động và gửi dữ liệu liên tục lên Backend.
+This command will automatically:
+1. Download and configure **MongoDB** & **Redis**.
+2. Build the **Backend** image and start it in Multi-core (Cluster) mode.
+3. Build the static image for the **Frontend (Next.js)**.
+4. Start the **Robot Simulator** to simulate 5 active robots continuously sending data to the Backend.
 
-### Bước 3: Tận hưởng kết quả
-Chờ một chút để quá trình build hoàn tất. Sau đó, hãy mở trình duyệt và truy cập vào:
+### Step 3: Enjoy the result
+Wait a moment for the build process to complete. Then, open your browser and go to:
 👉 **[http://localhost:3000](http://localhost:3000)**
 
-Bạn sẽ thấy giao diện Dashboard hiện ra với các chỉ số viễn thông của Robot thay đổi mượt mà theo thời gian thực!
+You will see the Dashboard interface appear, with the Robots' telemetry metrics updating smoothly in real-time!
 
 ---
 
-## 🛑 Cách Dừng Hệ Thống
+## 🛑 How to Stop the System
 
-Để dừng và tắt toàn bộ hệ thống đang chạy ngầm, gõ lệnh:
+To stop and shut down the entire system running in the background, run:
 ```bash
 docker compose down
 ```
 
-Nếu bạn muốn xóa luôn cả dữ liệu (database volume của MongoDB) để reset lại từ đầu thì thêm cờ `-v`:
+If you also want to delete the data (MongoDB volume) to reset everything from scratch, add the `-v` flag:
 ```bash
 docker compose down -v
 ```
 
 ---
 
-## 🔧 Dành cho Nhà Phát Triển (Chạy thủ công)
-Nếu bạn muốn sửa code và chạy thủ công không qua Docker, hãy xem chi tiết cấu trúc hệ thống trong file `INSTRUCTIONS.md` hoặc xem README riêng tư ở hai thư mục `frontend` và `backend`.
+## 🔧 For Developers (Manual Run)
+If you want to edit the code and run it manually without Docker, please check the system architecture details in `INSTRUCTIONS.md` or view the individual `README.md` files in the `frontend` and `backend` directories.

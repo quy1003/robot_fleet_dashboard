@@ -1,86 +1,86 @@
 # 🤖 Robot Fleet Dashboard - Frontend
 
-Dự án này là giao diện điều khiển trung tâm (Dashboard) dành cho hệ thống Robot Fleet. Nó giúp người dùng theo dõi trực tiếp (real-time) trạng thái của hàng loạt robot trên bản đồ và biểu đồ.
+This project is the central control interface (Dashboard) for the Robot Fleet system. It helps users monitor the real-time status of numerous robots on maps and charts.
 
-## 🌟 Công nghệ sử dụng
-- **Next.js 14 (App Router)**: Framework React hiện đại giúp tối ưu hóa hiệu suất và routing.
-- **TypeScript**: Giúp code chặt chẽ, an toàn và dễ bảo trì.
-- **Tailwind CSS**: Framework CSS tiện lợi giúp dựng giao diện cực nhanh và đẹp.
-- **Recharts**: Thư viện vẽ biểu đồ chuyên nghiệp cho React.
-- **Native WebSockets**: Kết nối trực tiếp với Backend để nhận dữ liệu liên tục mà không cần F5.
+## 🌟 Technologies Used
+- **Next.js 14 (App Router)**: Modern React framework optimizing performance and routing.
+- **TypeScript**: Ensures strict, safe, and maintainable code.
+- **Tailwind CSS**: Utility-first CSS framework for rapid and beautiful UI development.
+- **Recharts**: Professional charting library for React.
+- **Native WebSockets**: Direct connection to the Backend to receive continuous data without reloading.
 
-## 📂 Cấu trúc thư mục (Architecture)
+## 📂 Architecture & Directory Structure
 
 ```text
 frontend/
 ├── src/
-│   ├── app/                 # Chứa các trang (Pages) của Next.js
-│   │   ├── layout.tsx       # Khung sườn chung của toàn bộ web
-│   │   ├── page.tsx         # Trang chủ Dashboard hiển thị mọi thứ
-│   │   └── globals.css      # File CSS tổng, chứa các mã màu chủ đạo
+│   ├── app/                 # Next.js Pages
+│   │   ├── layout.tsx       # Main layout structure
+│   │   ├── page.tsx         # Dashboard home page displaying everything
+│   │   └── globals.css      # Global CSS and design tokens
 │   │
-│   ├── components/          # Các mảnh ghép giao diện (UI Components)
-│   │   ├── AppHeader.tsx    # Thanh điều hướng phía trên
-│   │   ├── MainLayout.tsx   # Bố cục chính
-│   │   ├── RobotCharts.tsx  # Biểu đồ hiển thị tình trạng Robot
-│   │   └── SummaryCards.tsx # Các thẻ tóm tắt (Tổng số, Pin, Mạng...)
+│   ├── components/          # UI Components
+│   │   ├── AppHeader.tsx    # Top navigation bar
+│   │   ├── MainLayout.tsx   # Main application layout wrapper
+│   │   ├── RobotCharts.tsx  # Charts displaying Robot status
+│   │   └── SummaryCards.tsx # Summary cards (Total, Battery, Network...)
 │   │
-│   └── hooks/               # Các hàm logic dùng chung
-│       └── useRobotsData.ts # Hàm móc nối (Hook) cực kỳ quan trọng:
-│                            # 1. Gọi API lấy dữ liệu cũ
-│                            # 2. Mở cổng kết nối WebSocket để nhận dữ liệu mới
+│   └── hooks/               # Shared Logic Hooks
+│       └── useRobotsData.ts # Crucial custom hook:
+│                            # 1. Calls API for initial state
+│                            # 2. Opens WebSocket connection for live updates
 │
-├── .env.example             # File mẫu chứa các biến môi trường
-└── package.json             # Danh sách thư viện cần thiết
+├── .env.example             # Environment variables template
+└── package.json             # Dependencies
 ```
 
-## ⚙️ Luồng hoạt động (Data Flow)
+## ⚙️ Data Flow
 
-1. **Khởi tạo (Initial Load):**
-   - Khi bạn mở trình duyệt vào trang Dashboard, component `useRobotsData` sẽ chạy.
-   - Nó lập tức gửi một yêu cầu HTTP (API REST) tới Backend để lấy "Bức ảnh chụp hiện tại" của tất cả các robot.
+1. **Initial Load:**
+   - When you open the Dashboard in your browser, the `useRobotsData` hook executes.
+   - It immediately sends an HTTP GET request (REST API) to the Backend to fetch the current "Snapshot" of all robots.
 
-2. **Dòng chảy trực tiếp (Real-time Stream):**
-   - Ngay sau khi lấy xong dữ liệu ban đầu, `useRobotsData` sẽ cắm một "ống nước" WebSocket tới Backend (`/ws/dashboard`).
-   - Cứ mỗi 5 giây, khi Backend gom xong cục dữ liệu mới từ Robot, nó sẽ bơm dữ liệu đó qua ống nước này.
-   - Frontend nhận được giọt nước mới (dữ liệu mới) -> Tự động kích hoạt React cập nhật lại toàn bộ Bảng biểu và Biểu đồ trên màn hình.
+2. **Real-time Stream:**
+   - Right after the initial data is fetched, `useRobotsData` establishes a WebSocket connection to the Backend (`/ws/dashboard`).
+   - Every second, when the Backend aggregates new data from the Robots, it pushes this data through the WebSocket.
+   - The Frontend receives the new data -> Automatically triggers React to update the Tables and Charts on the screen.
 
-3. **Giao diện (UI Rendering):**
-   - File `page.tsx` đóng vai trò là "Nhạc trưởng", lấy dữ liệu từ Hook `useRobotsData` và chia phát cho các nhạc công:
-     - Chia số liệu tổng quan cho `SummaryCards`
-     - Chia số liệu chi tiết cho `RobotCharts`
+3. **UI Rendering:**
+   - `page.tsx` acts as the orchestrator, taking data from `useRobotsData` and distributing it:
+     - Distributes overview metrics to `SummaryCards`
+     - Distributes detailed metrics to `RobotCharts`
 
-## 🚀 Hướng dẫn cài đặt và chạy thử
+## 🚀 Installation & Setup
 
-1. **Cài đặt thư viện:**
-   Vào thư mục `frontend` và chạy:
+1. **Install Dependencies:**
+   Navigate to the `frontend` directory and run:
    ```bash
    npm install
    ```
 
-2. **Cấu hình môi trường:**
-   Copy file `.env.example` thành `.env.local` và điền thông tin:
+2. **Environment Configuration:**
+   Copy the `.env.example` file to `.env.local` and fill in the details:
    ```bash
    cp .env.example .env.local
    ```
-   *Lưu ý: NEXT_PUBLIC_API_URL trỏ về cổng của Backend.*
+   *Note: `NEXT_PUBLIC_API_URL` should point to the Backend's port.*
 
-3. **Chạy dự án:**
+3. **Run the Project:**
    ```bash
    npm run dev
    ```
-   Mở trình duyệt tại `http://localhost:3000` để xem kết quả.
+   Open your browser at `http://localhost:3000` to view the result.
 
-## 🧠 Tối ưu hóa (Performance Optimization) & Clean Code
+## 🧠 Performance Optimization & Clean Code
 
-Trong quá trình phát triển, giao diện đã được thiết kế lại (refactor) để đảm bảo hai yếu tố: **Hiệu năng cao** và **Dễ bảo trì**.
+During development, the interface was refactored to ensure two things: **High Performance** and **Maintainability**.
 
-### 1. Kiến trúc Clean Code & Custom Hooks
-- **Tách biệt Logic và UI:** Các logic xử lý phức tạp (gọi API, xử lý Websocket, quản lý state) được tách hoàn toàn ra khỏi các Component giao diện và đưa vào các **Custom Hooks** (như `useRobotsData`, `useRobotDetail`).
-- **Component thuần túy (Dumb Components):** Các Component như `RobotTelemetryStats` hay `RobotHistoryCharts` chỉ làm nhiệm vụ nhận `props` và render JSX. Điều này giúp file code trở nên cực kỳ ngắn gọn, dễ đọc và dễ tái sử dụng.
-- **Loại bỏ Magic Numbers/Strings:** Tất cả các trạng thái API (`success`, `error`), giới hạn số lượng, hoặc cấu hình biểu đồ đều được khai báo tập trung tại file `constants/config.ts`.
+### 1. Clean Code Architecture & Custom Hooks
+- **Separation of Logic and UI:** Complex logic (API calls, WebSocket handling, state management) is completely decoupled from UI Components and placed into **Custom Hooks** (e.g., `useRobotsData`, `useRobotDetail`).
+- **Dumb Components:** Components like `RobotTelemetryStats` or `RobotHistoryCharts` only receive `props` and render JSX. This makes the code concise, readable, and highly reusable.
+- **Elimination of Magic Numbers/Strings:** All API states (`success`, `error`), quantity limits, and chart configurations are centrally defined in `constants/config.ts`.
 
-### 2. Tối ưu Hiệu năng Biểu đồ (Recharts)
-- Khi nhận dữ liệu Websocket liên tục, biểu đồ (Charts) là thành phần dễ gây giật lag (lagging) nhất cho trình duyệt.
-- **Data Downsampling:** Hệ thống tự động giới hạn số lượng điểm ảnh hiển thị trên biểu đồ (ví dụ: tối đa 120 điểm). Khi dữ liệu vượt quá, điểm cũ nhất sẽ bị cắt bỏ, giúp DOM không bị phình to.
-- **Tắt hiệu ứng thừa:** Tắt các hiệu ứng hoạt ảnh (`isAnimationActive={false}`) của Recharts khi dữ liệu cập nhật theo thời gian thực để đảm bảo biểu đồ mượt mà, không bị khựng (stutter) khi có quá nhiều render cycle.
+### 2. Chart Performance Optimization (Recharts)
+- When receiving continuous WebSocket data, charts are the components most prone to causing browser lagging.
+- **Data Downsampling:** The system automatically limits the number of data points displayed on the chart (e.g., maximum 120 points). When data exceeds this limit, the oldest point is removed, preventing the DOM from bloating.
+- **Disable Unnecessary Animations:** Chart animations (`isAnimationActive={false}`) are disabled during real-time updates to ensure smooth rendering and prevent stuttering over many render cycles.
