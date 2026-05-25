@@ -79,6 +79,9 @@ backend/
 │   └── dashboard.js      # Manages Dashboard Frontend connections
 ├── .env.example          # Template for environment variables
 ├── app.js                # Main application entrypoint
+├── cluster.js            # Cluster mode entrypoint for multi-core scaling
+├── Dockerfile            # Docker image configuration
+├── .dockerignore         # Docker ignore rules
 ├── package.json          # Dependencies and scripts
 └── package-lock.json     # Dependency lockfile
 ```
@@ -234,4 +237,6 @@ To run the application with the Cluster (Production mode), you must have a **Red
 
 **✅ Answer & Solution:**
 - **Missing `ld-linux...` library**: uWebSockets.js uses a precompiled C++ binary requiring `glibc`, but Docker `alpine` images use `musl` libc. Solution: change the base image in `Dockerfile` to a Debian-based one like `node:20-slim`.
-- **Port 8080 EADDRINUSE in Cluster mode**: uWebSockets.js bypasses Node.js native cluster port-sharing. Solution: enable Linux **SO_REUSEPORT** by passing `0` as the options flag in the listen function: `app.listen(PORT, 0, (token) => {...})`.
+- **Port 8080 EADDRINUSE in Cluster mode**: 
+  - *Why?* In standard Node.js apps (like Express), the `cluster` module hijacks the native `net`/`http` module: the Master process binds to the port and passes connections to the Workers via IPC. However, **uWebSockets.js** is a native C++ addon that interfaces directly with the OS, bypassing Node's `net` module entirely. Thus, Node's `cluster` cannot intercept it. Each Worker tries to make a raw system call to bind port 8080 independently, resulting in an `EADDRINUSE` collision.
+  - *Solution:* Instead of relying on the Node Master process, we leverage **SO_REUSEPORT** (a Linux kernel feature) to let the OS handle load balancing. By passing `0` as the options flag in the `listen()` function, uWebSockets.js instructs the Linux kernel to allow multiple Workers to bind to the same port: `app.listen(PORT, 0, (token) => {...})`.

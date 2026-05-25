@@ -4,20 +4,18 @@ const { models } = require('../database/index.js')
 const { pubClient } = require('./redis')
 const { REDIS_CHANNELS } = require('../constants/events')
 
-// Tạo một "giỏ hàng" chứa dữ liệu tạm thời (Buffer)
+// Create a buffer to store data temporarily
 const telemetryBuffer = []
 
-// Cứ mỗi 5 giây, mang "giỏ hàng" đi cất vào kho (Database) 1 lần
+// Save data every 5s
 setInterval(async () => {
   if (telemetryBuffer.length > 0) {
-    // Lấy hết dữ liệu hiện tại ra và làm trống giỏ ngay lập tức để nhận tiếp
     const dataToSave = telemetryBuffer.splice(0, telemetryBuffer.length)
     
     try {
       await models.RobotTelemetry.insertMany(dataToSave)
-      // console.log(`Đã lưu ${dataToSave.length} bản ghi vào Database cùng lúc.`)
     } catch (err) {
-      console.error('Lỗi khi lưu cục dữ liệu:', err.message)
+      console.error('Error when saving data batch:', err.message)
     }
   }
 }, 5000)
@@ -74,16 +72,16 @@ class RobotWebSocket {
         timestamp: new Date(data.timestamp),
       }
 
-      // Bỏ dữ liệu vào "giỏ hàng" thay vì ghi thẳng vào Database ngay lập tức
+      // Add data to bucket instead of insert to DB directly
       telemetryBuffer.push(telemetry)
 
       const payload = JSON.stringify({ type: 'telemetry', data: telemetry })
       
-      // Publish dữ liệu lên Redis thay vì tự gửi
+      // Publish data to Publisher
       if (pubClient.isOpen) {
         pubClient.publish(REDIS_CHANNELS.TELEMETRY_UPDATE, payload)
       } else {
-        // Fallback gửi trực tiếp nếu Redis mất kết nối
+        // Fallback send directly if Redis lost connection
         for (const client of this.dashboardClients) {
           client.send(payload)
         }

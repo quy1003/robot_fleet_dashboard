@@ -11,6 +11,7 @@ if (cluster.isPrimary) {
     cluster.fork()
   }
 
+  // Auto recovery cluster when process id died
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died with code ${code}. Restarting...`)
     cluster.fork()

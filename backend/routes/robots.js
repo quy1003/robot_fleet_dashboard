@@ -11,7 +11,7 @@ class RobotRoutes {
   }
 
   registerRoutes() {
-    // Wrap bằng asyncHandler để tự động bắt lỗi
+    // Wrap with asyncHandler for automatic error handling
     this.app.get(`${this.prefix}/:id/history`, asyncHandler(this.getHistory.bind(this)))
     this.app.get(`${this.prefix}`, asyncHandler(this.getLatestSnapshot.bind(this)))
   }
@@ -21,7 +21,7 @@ class RobotRoutes {
     const hours = parseInt(req.getQuery('hours') || '6')
     const since = new Date(Date.now() - hours * 3600 * 1000)
 
-    // Lấy dữ liệu
+    // Fetch data
     const history = await models.RobotTelemetry.find(
       { robotId, timestamp: { $gte: since } },
       { _id: 0, __v: 0 }
@@ -29,9 +29,9 @@ class RobotRoutes {
       .sort({ timestamp: 1 })
       .lean()
 
-    // Ví dụ về việc throw error (Bạn có thể xoá nêú không cần):
+    // Example of throwing an error (You can remove if not needed):
     if (!history) {
-      throw new AppError('Không tìm thấy lịch sử cho robot này', 404)
+      throw new AppError('History not found for this robot', 404)
     }
 
     sendSuccess(res, history)

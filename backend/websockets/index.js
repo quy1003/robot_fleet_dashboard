@@ -5,13 +5,13 @@ const { REDIS_CHANNELS } = require('../constants/events')
 const { subClient, connectRedis } = require('./redis')
 
 module.exports = (app) => {
-  // Khởi tạo state ngay tại root của websockets, dùng chung cho cả 2 channel
+  // Initialize state at the root of websockets, shared between both channels
   const dashboardClients = new Set()
 
-  // Kết nối Redis và lắng nghe sự kiện
+  // Connect to Redis and listen for events
   connectRedis().then(() => {
     subClient.subscribe(REDIS_CHANNELS.TELEMETRY_UPDATE, (message) => {
-      // Khi có tin nhắn từ Redis, phát lại cho các Dashboard đang kết nối với Worker này
+      // When Redis have message dispatch this message to dashboard client
       for (const client of dashboardClients) {
         client.send(message)
       }

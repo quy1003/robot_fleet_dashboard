@@ -46,3 +46,5 @@ docker compose down -v
 
 ## 🔧 For Developers (Manual Run)
 If you want to edit the code and run it manually without Docker, please check the system architecture details in `INSTRUCTIONS.md` or view the individual `README.md` files in the `frontend` and `backend` directories.
+
+Link video demo: https://drive.google.com/file/d/1yHNt7Lw5qa-E_XJ3OLdLNULqcLs-lqLe/view

@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { notification } from 'antd'
 import { useWebSocket } from './useWebSocket'
-import { RobotData, Alert, ApiResponse, WebSocketMessage } from '../types/robot'
-import { APP_CONFIG, ROBOT_STATUS } from '../constants/config'
+import { RobotData, Alert, WebSocketMessage } from '../types/robot'
+import { APP_CONFIG, ROBOT_STATUS, WS_EVENTS } from '../constants/config'
 import { RobotService } from '../services/robot.service'
 
 interface AlertState {
@@ -17,7 +17,7 @@ export function useRobotsData() {
   const [robots, setRobots] = useState<Record<string, RobotData>>({})
   const [alerts, setAlerts] = useState<Alert[]>([])
   
-  // Lưu trạng thái cảnh báo của từng robot (không trigger re-render thừa)
+  // Store the alert state of each robot (does not trigger unnecessary re-renders)
   const alertStates = useRef<Record<string, AlertState>>({})
   
   const { isConnected, lastMessage } = useWebSocket(APP_CONFIG.WS_URL)
@@ -52,95 +52,104 @@ export function useRobotsData() {
     try {
       const parsed: WebSocketMessage = JSON.parse(lastMessage)
       
-      if (parsed.type === 'telemetry' && parsed.data) {
-        const data = parsed.data
-        const robotId = data.robotId
+      switch (parsed.type) {
+        case WS_EVENTS.TELEMETRY: {
+          if (!parsed.data) break
+
+          const data = parsed.data
+          const robotId = data.robotId
+          
+          setRobots(prev => {
+            const status = data.batteryPercentage <= APP_CONFIG.THRESHOLDS.LOW_BATTERY ? ROBOT_STATUS.WARNING : ROBOT_STATUS.ONLINE
+            return {
+              ...prev,
+              [robotId]: { ...data, status }
+            }
+          })
+
+          // Initialize alert state if it does not exist
+          if (!alertStates.current[robotId]) {
+            alertStates.current[robotId] = {
+              hasWarnedLowBattery: false,
+              hasWarnedCriticalBattery: false,
+              lowBatteryStartTime: null
+            }
+          }
+
+          const state = alertStates.current[robotId]
+          const isLowBattery = data.batteryPercentage < 20 && !data.isCharging
+
+          if (isLowBattery) {
+            // Start the timer if not already started
+            if (state.lowBatteryStartTime === null) {
+              state.lowBatteryStartTime = Date.now()
+            }
+
+            // Alert 1: Low Battery (Warning 🟡)
+            if (!state.hasWarnedLowBattery) {
+              state.hasWarnedLowBattery = true
+
+              notification.warning({
+                message: 'Low Battery Warning 🟡',
+                description: `Robot ${robotId} is low battery! (${data.batteryPercentage}%)`,
+                placement: 'topRight',
+                duration: 5
+              })
+
+              setAlerts(prev => {
+                const newAlert: Alert = {
+                  id: `low_${robotId}_${Date.now()}`,
+                  robotId,
+                  type: 'low_battery',
+                  message: `Robot ${robotId} is low battery! (${data.batteryPercentage}%)`,
+                  timestamp: new Date().toISOString(),
+                  acknowledged: false
+                }
+                return [newAlert, ...prev].slice(0, APP_CONFIG.ALERTS.MAX_HISTORY)
+              })
+            }
+
+            // Alert 2: Critical Battery (Error 🔴) - continuous >= 5 mins
+            const timeElapsed = Date.now() - state.lowBatteryStartTime
+            const threshold = 5 * 60 * 1000 // 5 mins (300000 ms)
+
+            if (timeElapsed >= threshold && !state.hasWarnedCriticalBattery) {
+              state.hasWarnedCriticalBattery = true
+
+              notification.error({
+                message: 'Critical Warning 🔴',
+                description: `Robot ${robotId} will be shut down soon! (Below 20% continuously for 5 mins)`,
+                placement: 'topRight',
+                duration: 10
+              })
+
+              setAlerts(prev => {
+                const newAlert: Alert = {
+                  id: `critical_${robotId}_${Date.now()}`,
+                  robotId,
+                  type: 'critical_battery',
+                  message: `Robot ${robotId} will be shut down soon!`,
+                  timestamp: new Date().toISOString(),
+                  acknowledged: false
+                }
+                return [newAlert, ...prev].slice(0, APP_CONFIG.ALERTS.MAX_HISTORY)
+              })
+            }
+          } else {
+            // Reset state if battery >= 20% or robot is charging
+            if (state.hasWarnedLowBattery || state.hasWarnedCriticalBattery || state.lowBatteryStartTime !== null) {
+              state.hasWarnedLowBattery = false
+              state.hasWarnedCriticalBattery = false
+              state.lowBatteryStartTime = null
+              console.log(`[Alert System] Reset state for Robot ${robotId}`)
+            }
+          }
+          break
+        }
         
-        setRobots(prev => {
-          const status = data.batteryPercentage <= APP_CONFIG.THRESHOLDS.LOW_BATTERY ? ROBOT_STATUS.WARNING : ROBOT_STATUS.ONLINE
-          return {
-            ...prev,
-            [robotId]: { ...data, status }
-          }
-        })
-
-        // Khởi tạo trạng thái cảnh báo nếu chưa có
-        if (!alertStates.current[robotId]) {
-          alertStates.current[robotId] = {
-            hasWarnedLowBattery: false,
-            hasWarnedCriticalBattery: false,
-            lowBatteryStartTime: null
-          }
-        }
-
-        const state = alertStates.current[robotId]
-        const isLowBattery = data.batteryPercentage < 20 && !data.isCharging
-
-        if (isLowBattery) {
-          // Bắt đầu đếm giờ nếu chưa đếm
-          if (state.lowBatteryStartTime === null) {
-            state.lowBatteryStartTime = Date.now()
-          }
-
-          // Cảnh báo 1: Low Battery (Warning 🟡)
-          if (!state.hasWarnedLowBattery) {
-            state.hasWarnedLowBattery = true
-
-            notification.warning({
-              message: 'Cảnh báo Pin Yếu 🟡',
-              description: `Robot ${robotId} is low battery! (${data.batteryPercentage}%)`,
-              placement: 'topRight',
-              duration: 5
-            })
-
-            setAlerts(prev => {
-              const newAlert: Alert = {
-                id: `low_${robotId}_${Date.now()}`,
-                robotId,
-                type: 'low_battery',
-                message: `Robot ${robotId} is low battery! (${data.batteryPercentage}%)`,
-                timestamp: new Date().toISOString(),
-                acknowledged: false
-              }
-              return [newAlert, ...prev].slice(0, APP_CONFIG.ALERTS.MAX_HISTORY)
-            })
-          }
-
-          // Cảnh báo 2: Critical Battery (Error 🔴) - liên tục >= 5 phút
-          const timeElapsed = Date.now() - state.lowBatteryStartTime
-          const threshold = 5 * 60 * 1000 // 5 phút (300000 ms)
-
-          if (timeElapsed >= threshold && !state.hasWarnedCriticalBattery) {
-            state.hasWarnedCriticalBattery = true
-
-            notification.error({
-              message: 'Cảnh báo Khẩn cấp 🔴',
-              description: `Robot ${robotId} will be shut down soon! (Dưới 20% liên tục 5 phút)`,
-              placement: 'topRight',
-              duration: 10
-            })
-
-            setAlerts(prev => {
-              const newAlert: Alert = {
-                id: `critical_${robotId}_${Date.now()}`,
-                robotId,
-                type: 'critical_battery',
-                message: `Robot ${robotId} will be shut down soon!`,
-                timestamp: new Date().toISOString(),
-                acknowledged: false
-              }
-              return [newAlert, ...prev].slice(0, APP_CONFIG.ALERTS.MAX_HISTORY)
-            })
-          }
-        } else {
-          // Reset trạng thái nếu pin >= 20% hoặc robot đang sạc
-          if (state.hasWarnedLowBattery || state.hasWarnedCriticalBattery || state.lowBatteryStartTime !== null) {
-            state.hasWarnedLowBattery = false
-            state.hasWarnedCriticalBattery = false
-            state.lowBatteryStartTime = null
-            console.log(`[Alert System] Reset state for Robot ${robotId}`)
-          }
-        }
+        // Handle other WebSocket message types here in the future
+        default:
+          console.log(`[WebSocket] Unhandled message type: ${parsed.type}`)
       }
     } catch (error) {
       console.error('Error parsing WS message:', error)

@@ -1,3 +1,5 @@
+import { WS_EVENTS } from '../constants/config'
+
 export interface Robot {
   robotId: string
   batteryPercentage: number
@@ -33,26 +35,8 @@ export interface Alert {
 }
 
 export interface WebSocketMessage {
-  type: 'telemetry' | 'robot_update' | 'robot_connected' | 'robot_disconnected' | 'initial_robots'
+  type: typeof WS_EVENTS[keyof typeof WS_EVENTS]
   robotId?: string
   data?: RobotData
   robots?: string[]
-}
-
-export interface ChartDataPoint {
-  timestamp: string
-  batteryPercentage: number
-  wifiSignalStrength: number
-  temperature: number
-  memoryUsage: number
-}
-
-export interface RobotMetrics {
-  robotId: string
-  avgBattery: number
-  avgTemperature: number
-  avgMemoryUsage: number
-  avgWifiSignal: number
-  lastSeen: string
-  totalDataPoints: number
 }

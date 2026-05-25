@@ -1,4 +1,4 @@
-const API_VERSION = '/api/v1' // Thay đổi version ở đây nếu nâng cấp API
+const API_VERSION = '/api/v1' // Change version here if upgrading API
 
 const ROUTES = {
   API: {

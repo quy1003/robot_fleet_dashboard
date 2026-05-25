@@ -81,7 +81,7 @@ export function useWebSocket(url: string): UseWebSocketReturn {
         clearTimeout(reconnectTimeoutRef.current)
       }
       if (ws.current) {
-        ws.current.onclose = null // Chống trigger auto-reconnect khi unmount
+        ws.current.onclose = null // Not trigger auto-reconnect when unmount
         ws.current.close()
       }
     }

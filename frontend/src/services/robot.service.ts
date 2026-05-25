@@ -3,8 +3,8 @@ import { APP_CONFIG, API_STATUS } from '../constants/config'
 
 export const RobotService = {
   /**
-   * Lấy dữ liệu lịch sử telemetry của robot trong số giờ chỉ định
-   * Trả về mảng rỗng nếu xảy ra lỗi (Graceful fallback)
+   * Fetch historical telemetry data for the robot within specified hours
+   * Returns empty array on error (Graceful fallback)
    */
   async getHistory(robotId: string, hours = APP_CONFIG.HISTORY.HOURS): Promise<RobotData[]> {
     try {
@@ -30,7 +30,7 @@ export const RobotService = {
   },
 
   /**
-   * Lấy snapshot dữ liệu mới nhất của tất cả các robot
+   * Fetch the latest data snapshot for all robots
    */
   async getLatestSnapshot(): Promise<RobotData[]> {
     try {

@@ -14,10 +14,10 @@ const schema = new mongoose.Schema({
     metaField: 'robotId',
     granularity: 'seconds'
   },
-  expireAfterSeconds: 604800 // Xóa dữ liệu cũ sau 7 ngày (thay thế cho TTL index cũ)
+  expireAfterSeconds: 604800 // Delete old data after 7 days (replaces old TTL index)
 });
 
-// Chú ý: Các index thủ công đã được xóa vì Time-Series tự động tạo index 
-// tối ưu nhất cho timeField và metaField.
+// Note: Manual indexes were removed because Time-Series automatically creates 
+// optimal indexes for timeField and metaField.
 
 module.exports = mongoose.model('RobotTelemetry', schema);

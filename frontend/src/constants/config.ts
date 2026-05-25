@@ -8,13 +8,13 @@ export const APP_CONFIG = {
   CHART: {
     MAX_DATA_POINTS: 20,
     ANIMATION_DURATION: 300,
-    MAX_DETAIL_CHART_POINTS: 120, // Số điểm tối đa vẽ trên biểu đồ chi tiết (Downsample)
+    MAX_DETAIL_CHART_POINTS: 120, // Maximum data points rendered on detail chart (Downsample)
   },
   ALERTS: {
     MAX_HISTORY: 50,
   },
   HISTORY: {
-    HOURS: 6, // Số giờ tải dữ liệu lịch sử mặc định
+    HOURS: 6, // Default number of hours for historical data
   }
 };
 
@@ -27,4 +27,12 @@ export const ROBOT_STATUS = {
   ONLINE: 'online',
   WARNING: 'warning',
   OFFLINE: 'offline',
+} as const;
+
+export const WS_EVENTS = {
+  TELEMETRY: 'telemetry',
+  ROBOT_UPDATE: 'robot_update',
+  ROBOT_CONNECTED: 'robot_connected',
+  ROBOT_DISCONNECTED: 'robot_disconnected',
+  INITIAL_ROBOTS: 'initial_robots',
 } as const;

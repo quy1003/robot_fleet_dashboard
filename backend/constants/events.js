@@ -1,7 +1,7 @@
 const REDIS_CHANNELS = {
   TELEMETRY_UPDATE: 'telemetry',
-  // Thêm các channel khác vào đây trong tương lai nếu cần
-  // Ví dụ:
+  // Add other channels here in the future if needed
+  // Example:
   // ALERT_TRIGGERED: 'alerts',
   // COMMAND_SEND: 'commands',
 }
